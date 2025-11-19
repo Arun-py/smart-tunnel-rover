@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import './Dashboard.css';
 import { Activity, Thermometer, Droplets, Wind, Ruler, AlertTriangle, CheckCircle, Radio } from 'lucide-react';
+import SensorCharts from './components/SensorCharts';
 
 // Backend URL - automatically uses production URL when deployed
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
@@ -20,6 +21,7 @@ function Dashboard({ onNavigateToLanding }) {
     timestamp: null,
     deviceId: 'rover_001'
   });
+  const [sensorHistory, setSensorHistory] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [socket, setSocket] = useState(null);
@@ -40,15 +42,26 @@ function Dashboard({ onNavigateToLanding }) {
 
     newSocket.on('sensorData', (data) => {
       console.log('📡 Received:', data);
-      setSensorData({
+      const newData = {
         temperature: data.temperature || 0,
         humidity: data.humidity || 0,
         gasLevel: data.gasLevel || 0,
         distance: data.distance || 0,
         timestamp: data.timestamp || Date.now(),
         deviceId: data.deviceId || 'rover_001'
-      });
+      };
+      
+      setSensorData(newData);
       setLastUpdate(new Date());
+      
+      // Add to history (keep last 50 readings)
+      setSensorHistory(prev => {
+        const updated = [...prev, newData];
+        if (updated.length > 50) {
+          return updated.slice(-50);
+        }
+        return updated;
+      });
     });
 
     setSocket(newSocket);
@@ -195,6 +208,9 @@ function Dashboard({ onNavigateToLanding }) {
             </div>
           </div>
         </div>
+
+        {/* Live Sensor Charts */}
+        <SensorCharts history={sensorHistory} />
 
         {/* Alert Panel */}
         <div className="alert-panel">
