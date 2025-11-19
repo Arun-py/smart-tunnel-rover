@@ -265,6 +265,54 @@ function LandingPage({ onNavigateToDashboard }) {
         </div>
       </section>
 
+      {/* Team Members Section */}
+      <section className="team-section">
+        <div className="section-container">
+          <div className="section-header">
+            <h2>Team Members</h2>
+            <p>Civil Engineering Department • 2025</p>
+          </div>
+          <div className="team-grid">
+            <div className="team-member">
+              <div className="member-info">
+                <h3>SANTHOSH KUMAR K</h3>
+                <p className="member-id">727723EUCV050</p>
+              </div>
+            </div>
+            <div className="team-member">
+              <div className="member-info">
+                <h3>AADEESH G</h3>
+                <p className="member-id">727723EUCV001</p>
+              </div>
+            </div>
+            <div className="team-member">
+              <div className="member-info">
+                <h3>PRADEESH S</h3>
+                <p className="member-id">727723EUCV040</p>
+              </div>
+            </div>
+            <div className="team-member">
+              <div className="member-info">
+                <h3>HEMENTH R</h3>
+                <p className="member-id">727723EUCV022</p>
+              </div>
+            </div>
+            <div className="team-member">
+              <div className="member-info">
+                <h3>JEREM SAMUEL J</h3>
+                <p className="member-id">727723EUCV025</p>
+              </div>
+            </div>
+            <div className="team-member">
+              <div className="member-info">
+                <h3>VISHNU PRAKASH G S</h3>
+                <p className="member-id">727723EUCV066</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-content">
