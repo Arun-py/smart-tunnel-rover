@@ -8,7 +8,8 @@ import { io } from 'socket.io-client';
 import './Dashboard.css';
 import { Activity, Thermometer, Droplets, Wind, Ruler, AlertTriangle, CheckCircle, Radio } from 'lucide-react';
 
-const BACKEND_URL = 'http://localhost:5000';
+// Backend URL - automatically uses production URL when deployed
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
 function Dashboard({ onNavigateToLanding }) {
   const [sensorData, setSensorData] = useState({

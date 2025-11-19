@@ -16,15 +16,25 @@ const app = express();
 const server = http.createServer(app);
 
 // ==================== Socket.IO Setup ====================
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://smart-tunnel-rover.vercel.app',
+  'https://*.vercel.app'
+];
+
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: process.env.NODE_ENV === 'production' ? allowedOrigins : '*',
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
 // ==================== Middleware ====================
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ 
+  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : '*', 
+  credentials: true 
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
