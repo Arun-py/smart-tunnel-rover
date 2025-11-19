@@ -1,22 +1,33 @@
 /**
- * Main App Component
- * Smart Tunnel Inspection Rover - Direct Firebase Dashboard
+ * Main App Component with Mode Selector
+ * Smart Tunnel Inspection Rover
+ * Supports both HTTP and Firebase modes
  */
 
 import React, { useState } from 'react';
 import Dashboard from './Dashboard';
+import DashboardFirebase from './DashboardFirebase';
 import LandingPage from './components/LandingPage';
 import './App.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' or 'dashboard'
+  
+  // Change this to switch between HTTP and Firebase mode
+  const USE_FIREBASE_MODE = true; // Set to true for Firebase, false for HTTP
 
   return (
     <div className="App">
       {currentView === 'landing' ? (
         <LandingPage onNavigateToDashboard={() => setCurrentView('dashboard')} />
       ) : (
-        <Dashboard onNavigateToLanding={() => setCurrentView('landing')} />
+        <>
+          {USE_FIREBASE_MODE ? (
+            <DashboardFirebase onNavigateToLanding={() => setCurrentView('landing')} />
+          ) : (
+            <Dashboard onNavigateToLanding={() => setCurrentView('landing')} />
+          )}
+        </>
       )}
     </div>
   );

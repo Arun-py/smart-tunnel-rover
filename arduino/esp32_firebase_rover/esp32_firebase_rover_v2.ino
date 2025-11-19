@@ -1,27 +1,33 @@
 /**
- * Smart Tunnel Inspection Rover - ESP32 HTTP Mode
+ * Smart Tunnel Inspection Rover - ESP32 Firebase Mode
  * Civil Engineering Department - 2025
  * 
  * Features:
- * - Autonomous movement (2s forward, 10s scan, 0.5s turn right, repeat)
- * - HTTP POST to local server (no Firebase needed)
+ * - Autonomous circular movement (2s forward, 10s scan, 0.5s turn right)
+ * - Firebase Realtime Database integration
  * - DHT22, MQ-2, HC-SR04 sensors
  * - L298N motor driver control
  */
 
 #include <WiFi.h>
-#include <HTTPClient.h>
 #include <DHT.h>
+#include <Firebase_ESP_Client.h>
+#include "addons/TokenHelper.h"
+#include "addons/RTDBHelper.h"
 
 // ==================== WiFi Configuration ====================
-const char* WIFI_SSID[] = {"ZORO", "Santhosh SK", "Aadeesh"};
-const char* WIFI_PASSWORD[] = {"zoro1111", "12345678", "12312312"};
-const int WIFI_COUNT = 3;
+#define WIFI_SSID "ZORO"
+#define WIFI_PASSWORD "zoro1111"
 
-// ==================== Server Configuration ====================
-// Production backend URL on Render
-const char* SERVER_URL = "https://smart-tunnel-rover.onrender.com/api/sensor-data";
-// For local testing: "http://10.33.64.133:5000/api/sensor-data"
+// ==================== Firebase Configuration ====================
+#define API_KEY "AIzaSyAbsngu27x5C2Nv_wzoD2WeZmNF4eW84V0"
+#define DATABASE_URL "https://rover-6126b-default-rtdb.asia-southeast1.firebasedatabase.app"
+
+// Firebase objects
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+bool firebaseReady = false;
 
 // ==================== Pin Definitions ====================
 // L298N Motor Driver Pins
@@ -58,6 +64,7 @@ int scanCount = 0;
 
 // ==================== Function Prototypes ====================
 void connectWiFi();
+void setupFirebase();
 void setupMotors();
 float getDistance();
 float readTemperature();
@@ -66,7 +73,7 @@ int readGasLevel();
 void stopMotors();
 void moveForward();
 void turnRight();
-void sendDataToServer();
+void sendDataToFirebase();
 
 // ==================== Setup ====================
 void setup() {
@@ -84,6 +91,9 @@ void setup() {
   
   // Connect to WiFi
   connectWiFi();
+  
+  // Setup Firebase
+  setupFirebase();
   
   Serial.println("\n=== Rover Initialized ===");
   Serial.println("Starting autonomous navigation...\n");
@@ -115,7 +125,7 @@ void loop() {
         // Send data every 2 seconds during scan
         if (currentTime - lastUpdate >= UPDATE_INTERVAL) {
           Serial.println("\n📡 Scanning... (" + String(scanCount + 1) + "/5)");
-          sendDataToServer();
+          sendDataToFirebase();
           lastUpdate = currentTime;
           scanCount++;
         }
@@ -142,41 +152,50 @@ void loop() {
 
 // ==================== WiFi Connection ====================
 void connectWiFi() {
-  Serial.println("Connecting to WiFi...");
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(WIFI_SSID);
+  
   WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
-  bool connected = false;
-  for (int i = 0; i < WIFI_COUNT; i++) {
-    Serial.print("Trying: ");
-    Serial.println(WIFI_SSID[i]);
-    
-    WiFi.begin(WIFI_SSID[i], WIFI_PASSWORD[i]);
-    
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-      delay(500);
-      Serial.print(".");
-      attempts++;
-    }
-    
-    if (WiFi.status() == WL_CONNECTED) {
-      connected = true;
-      Serial.println("\n✓ WiFi connected!");
-      Serial.print("SSID: ");
-      Serial.println(WIFI_SSID[i]);
-      Serial.print("IP Address: ");
-      Serial.println(WiFi.localIP());
-      Serial.print("Server: ");
-      Serial.println(SERVER_URL);
-      break;
-    } else {
-      Serial.println("\n✗ Failed");
-    }
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    Serial.print(".");
+    delay(500);
+    attempts++;
   }
   
-  if (!connected) {
-    Serial.println("⚠️ No WiFi - Running offline");
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\n✅ WiFi connected!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\n⚠️ WiFi connection failed - Running offline");
   }
+}
+
+// ==================== Firebase Setup ====================
+void setupFirebase() {
+  Serial.println("Initializing Firebase...");
+  
+  config.api_key = API_KEY;
+  config.database_url = DATABASE_URL;
+  
+  // Anonymous sign-in
+  if (Firebase.signUp(&config, &auth, "", "")) {
+    Serial.println("✅ Firebase anonymous sign-in successful");
+    firebaseReady = true;
+  } else {
+    Serial.printf("❌ Firebase sign-up failed: %s\n", config.signer.signupError.message.c_str());
+    firebaseReady = false;
+  }
+  
+  config.token_status_callback = tokenStatusCallback;
+  
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
+  
+  Serial.println("✓ Firebase initialized");
 }
 
 // ==================== Motor Setup ====================
@@ -201,10 +220,10 @@ float getDistance() {
   long duration = pulseIn(ECHO_PIN, HIGH, 30000);
   
   if (duration == 0) {
-    return 999; // No obstacle
+    return 999.0; // No obstacle detected
   }
   
-  float distance = duration * 0.034 / 2;
+  float distance = duration * 0.034 / 2.0;
   return distance;
 }
 
@@ -212,7 +231,8 @@ float getDistance() {
 float readTemperature() {
   float temp = dht.readTemperature();
   if (isnan(temp)) {
-    return 25.0;
+    Serial.println("⚠️ Failed to read temperature");
+    return 25.0; // Default value
   }
   return temp;
 }
@@ -220,7 +240,8 @@ float readTemperature() {
 float readHumidity() {
   float hum = dht.readHumidity();
   if (isnan(hum)) {
-    return 60.0;
+    Serial.println("⚠️ Failed to read humidity");
+    return 60.0; // Default value
   }
   return hum;
 }
@@ -228,6 +249,7 @@ float readHumidity() {
 // ==================== MQ-2 Gas Sensor ====================
 int readGasLevel() {
   int rawValue = analogRead(MQ2_PIN);
+  // Map 12-bit ADC (0-4095) to 0-1000 ppm
   int gasPPM = map(rawValue, 0, 4095, 0, 1000);
   return gasPPM;
 }
@@ -248,16 +270,17 @@ void moveForward() {
 }
 
 void turnRight() {
+  // Left motor forward, right motor backward
   digitalWrite(MOTOR_IN1, HIGH);
   digitalWrite(MOTOR_IN2, LOW);
   digitalWrite(MOTOR_IN3, LOW);
   digitalWrite(MOTOR_IN4, HIGH);
 }
 
-// ==================== HTTP Data Upload ====================
-void sendDataToServer() {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("⚠️ No WiFi - Data not sent");
+// ==================== Firebase Data Upload ====================
+void sendDataToFirebase() {
+  if (!firebaseReady || WiFi.status() != WL_CONNECTED) {
+    Serial.println("⚠️ Firebase/WiFi not ready - Data not sent");
     return;
   }
   
@@ -269,39 +292,63 @@ void sendDataToServer() {
   
   // Display readings
   Serial.println("📊 Sensor Data:");
-  Serial.println("  Temp: " + String(temperature, 1) + "°C");
-  Serial.println("  Humidity: " + String(humidity, 1) + "%");
-  Serial.println("  Gas: " + String(gasLevel) + " ppm");
-  Serial.println("  Distance: " + String(distance, 1) + " cm");
+  Serial.printf("  🌡 Temp: %.1f°C\n", temperature);
+  Serial.printf("  💧 Humidity: %.1f%%\n", humidity);
+  Serial.printf("  🧪 Gas: %d ppm\n", gasLevel);
+  Serial.printf("  📏 Distance: %.1f cm\n", distance);
   
-  // Create HTTP client
-  HTTPClient http;
-  http.begin(SERVER_URL);
-  http.addHeader("Content-Type", "application/json");
-  
-  // Create JSON payload
-  String jsonData = "{";
-  jsonData += "\"temperature\":" + String(temperature, 1) + ",";
-  jsonData += "\"humidity\":" + String(humidity, 1) + ",";
-  jsonData += "\"gasLevel\":" + String(gasLevel) + ",";
-  jsonData += "\"distance\":" + String(distance, 1) + ",";
-  jsonData += "\"deviceId\":\"rover_001\",";
-  jsonData += "\"timestamp\":" + String(millis());
-  jsonData += "}";
-  
-  // Send POST request
-  int httpCode = http.POST(jsonData);
-  
-  if (httpCode > 0) {
-    if (httpCode == 200 || httpCode == 201) {
-      Serial.println("✓ Data sent to server");
-    } else {
-      Serial.println("⚠️ Server responded: " + String(httpCode));
-    }
-  } else {
-    Serial.println("✗ Connection failed: " + http.errorToString(httpCode));
+  // Determine condition
+  String condition = "Good";
+  if (gasLevel > 300 || temperature > 35 || humidity < 20 || distance < 30) {
+    condition = "Bad";
+  } else if (gasLevel > 150 || temperature > 30 || humidity < 30 || distance < 50) {
+    condition = "Warning";
   }
   
-  http.end();
+  Serial.printf("  🧠 Condition: %s\n", condition.c_str());
+  
+  // Upload to Firebase under /sensors path
+  bool success = true;
+  
+  if (!Firebase.RTDB.setFloat(&fbdo, "/sensors/temperature", temperature)) {
+    Serial.println("❌ Temp upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  if (!Firebase.RTDB.setFloat(&fbdo, "/sensors/humidity", humidity)) {
+    Serial.println("❌ Humidity upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  if (!Firebase.RTDB.setInt(&fbdo, "/sensors/gasLevel", gasLevel)) {
+    Serial.println("❌ Gas upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  if (!Firebase.RTDB.setFloat(&fbdo, "/sensors/distance", distance)) {
+    Serial.println("❌ Distance upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  if (!Firebase.RTDB.setString(&fbdo, "/sensors/condition", condition)) {
+    Serial.println("❌ Condition upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  // Upload timestamp
+  if (!Firebase.RTDB.setInt(&fbdo, "/sensors/timestamp", millis())) {
+    Serial.println("❌ Timestamp upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  // Upload device ID
+  if (!Firebase.RTDB.setString(&fbdo, "/sensors/deviceId", "rover_001")) {
+    Serial.println("❌ Device ID upload failed: " + fbdo.errorReason());
+    success = false;
+  }
+  
+  if (success) {
+    Serial.println("✅ Data uploaded to Firebase successfully");
+  }
   Serial.println();
 }
