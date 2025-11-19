@@ -181,9 +181,9 @@ void setupFirebase() {
   config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
   
-  // Disable SSL certificate validation (for ESP32 compatibility)
-  config.cert.data = NULL;
-  config.cert.len = 0;
+  // Token status callback
+  config.token_status_callback = tokenStatusCallback;
+  config.max_token_generation_retry = 5;
   
   // Anonymous sign-in
   if (Firebase.signUp(&config, &auth, "", "")) {
@@ -194,15 +194,12 @@ void setupFirebase() {
     firebaseReady = false;
   }
   
-  config.token_status_callback = tokenStatusCallback;
-  config.max_token_generation_retry = 5;
-  
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
   
-  // Set timeout
-  fbdo.setBSSLBufferSize(1024, 1024);
-  fbdo.setResponseSize(1024);
+  // Set buffer sizes
+  fbdo.setBSSLBufferSize(4096, 1024);
+  fbdo.setResponseSize(2048);
   
   Serial.println("✓ Firebase initialized");
 }
