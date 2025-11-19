@@ -1,0 +1,98 @@
+.sensor-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.sensor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-blue);
+}
+
+.sensor-card.status-warning {
+  border-color: var(--accent-orange);
+}
+
+.sensor-card.status-danger {
+  border-color: var(--accent-red);
+  animation: glow 2s infinite;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.card-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.card-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.sensor-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+}
+
+.unit {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-green);
+}
+
+.status-indicator.status-warning {
+  background: var(--accent-orange);
+}
+
+.status-indicator.status-danger {
+  background: var(--accent-red);
+}
+
+@media (max-width: 768px) {
+  .sensor-value {
+    font-size: 2rem;
+  }
+}

@@ -1,0 +1,129 @@
+.event-log {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.log-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin: 0;
+}
+
+.log-title .title-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-color);
+}
+
+.event-count {
+  background: var(--primary-bg);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.log-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: var(--spacing-xs);
+}
+
+.no-events {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.no-events p {
+  margin: var(--spacing-xs) 0;
+}
+
+.event-item {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+  background: var(--primary-bg);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: var(--radius-sm);
+  animation: slideIn 0.3s ease;
+  transition: all var(--transition-fast);
+}
+
+.event-item:hover {
+  background: var(--secondary-bg);
+  transform: translateX(4px);
+}
+
+.event-item.event-success {
+  border-left-color: var(--accent-green);
+}
+
+.event-item.event-warning {
+  border-left-color: var(--accent-orange);
+}
+
+.event-item.event-error {
+  border-left-color: var(--accent-red);
+}
+
+.event-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.event-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-message {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.event-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+@media (max-width: 768px) {
+  .event-log {
+    height: 300px;
+  }
+}

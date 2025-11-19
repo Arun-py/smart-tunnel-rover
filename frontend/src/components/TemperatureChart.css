@@ -1,0 +1,173 @@
+/* ========================================
+   TEMPERATURE CHART STYLES
+   ======================================== */
+
+.temperature-chart {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.title-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-color);
+}
+
+.chart-stats {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+}
+
+.stat-item.temp {
+  border-left: 3px solid var(--accent-orange);
+}
+
+.stat-item.humidity {
+  border-left: 3px solid var(--accent-blue);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+}
+
+.chart-container {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  background: linear-gradient(135deg, rgba(10, 14, 39, 0.5) 0%, rgba(15, 20, 38, 0.5) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+}
+
+.chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+.spinner-large {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--spacing-sm);
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.chart-empty p {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.chart-empty-sub {
+  font-size: 0.875rem !important;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* Light Theme Adjustments */
+[data-theme="light"] .chart-container {
+  background: linear-gradient(135deg, rgba(245, 247, 250, 0.8) 0%, rgba(255, 255, 255, 0.8) 100%);
+}
+
+[data-theme="light"] .temperature-chart canvas {
+  filter: brightness(0.95);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .temperature-chart {
+    height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .temperature-chart {
+    height: 300px;
+  }
+  
+  .chart-header {
+    flex-direction: column;
+  }
+  
+  .chart-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .stat-item {
+    flex: 1;
+    min-width: 120px;
+  }
+}

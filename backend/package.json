@@ -1,0 +1,36 @@
+{
+  "name": "roadscan-backend",
+  "version": "1.0.0",
+  "description": "Smart Tunnel Inspection Rover - HTTP Direct Backend",
+  "main": "src/server-http-direct.js",
+  "scripts": {
+    "start": "node src/server-http-direct.js",
+    "dev": "nodemon src/server-http-direct.js",
+    "firebase": "node src/server-firebase-direct.js",
+    "old-server": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ITS",
+    "IoT",
+    "ESP32",
+    "MongoDB",
+    "Express"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "socket.io": "^4.6.0",
+    "morgan": "^1.10.0",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "firebase-admin": "^12.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
