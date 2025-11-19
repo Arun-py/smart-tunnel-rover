@@ -19,9 +19,9 @@ const char* WIFI_PASSWORD[] = {"zoro1111", "12345678", "12312312"};
 const int WIFI_COUNT = 3;
 
 // ==================== Server Configuration ====================
-// Change this to your computer's IP address (run 'ipconfig' to find it)
-const char* SERVER_URL = "http://10.33.64.133:5000/api/sensor-data";
-// Alternative: Use your actual IP like "http://10.33.64.133:5000/api/sensor-data"
+// Production backend URL on Render
+const char* SERVER_URL = "https://smart-tunnel-rover.onrender.com/api/sensor-data";
+// For local testing: "http://10.33.64.133:5000/api/sensor-data"
 
 // ==================== Pin Definitions ====================
 // L298N Motor Driver Pins
