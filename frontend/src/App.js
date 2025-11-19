@@ -14,7 +14,7 @@ function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' or 'dashboard'
   
   // Change this to switch between HTTP and Firebase mode
-  const USE_FIREBASE_MODE = true; // Set to true for Firebase, false for HTTP
+  const USE_FIREBASE_MODE = false; // Set to false for HTTP (working), true for Firebase
 
   return (
     <div className="App">
