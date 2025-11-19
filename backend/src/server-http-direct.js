@@ -67,6 +67,36 @@ io.on('connection', (socket) => {
 
 // ==================== API Routes ====================
 
+// Root route - API documentation
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Smart Tunnel Inspection Rover API',
+    version: '1.0.0',
+    status: 'running',
+    mode: 'HTTP Direct (No Firebase)',
+    endpoints: {
+      health: 'GET /api/health',
+      sensors: 'GET /api/sensors',
+      sensorData: 'POST /api/sensor-data (ESP32 endpoint)',
+      history: 'GET /api/sensors/history?limit=100',
+      analytics: 'GET /api/analytics'
+    },
+    github: 'https://github.com/Arun-py/smart-tunnel-rover',
+    documentation: 'See DEPLOYMENT_GUIDE.md'
+  });
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mode: 'HTTP Direct',
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+    latestData: latestSensorData
+  });
+});
+
 // POST endpoint for ESP32 to send sensor data
 app.post('/api/sensor-data', (req, res) => {
   try {
