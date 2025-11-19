@@ -533,6 +533,18 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .hero-section {
+    padding: 80px 20px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+  }
+
   .hero-buttons {
     flex-direction: column;
     align-items: center;
@@ -543,14 +555,28 @@
   .btn-cta {
     width: 100%;
     max-width: 300px;
+    padding: 14px 28px;
   }
 
   .hero-stats {
     gap: 20px;
+    flex-direction: column;
+  }
+
+  .stat-number {
+    font-size: 36px;
   }
 
   .stat-divider {
     display: none;
+  }
+
+  .section-container {
+    padding: 60px 15px;
+  }
+
+  .section-header h2 {
+    font-size: 32px;
   }
 
   .flow-arrow {
@@ -561,5 +587,41 @@
   .features-grid,
   .specs-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .objective-card,
+  .feature-item,
+  .spec-category {
+    padding: 20px;
   }
 }
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+  }
+
+  .hero-badge {
+    font-size: 12px;
+    padding: 10px 20px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+  }
+
+  .section-header h2 {
+    font-size: 24px;
+  }
+
+  .section-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+

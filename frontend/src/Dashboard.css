@@ -17,6 +17,12 @@ body {
   background: #0D0D0D;
 }
 
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 10px;
+  }
+}
+
 /* Header */
 .dashboard-header {
   display: flex;
@@ -31,6 +37,15 @@ body {
   border: 1px solid rgba(0, 255, 255, 0.2);
 }
 
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+    text-align: center;
+  }
+}
+
 .header-left {
   display: flex;
   align-items: center;
@@ -42,6 +57,13 @@ body {
   height: 50px;
   color: #00FFFF;
   animation: pulse 2s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 @keyframes pulse {
@@ -59,6 +81,12 @@ body {
   margin-bottom: 5px;
 }
 
+@media (max-width: 768px) {
+  .dashboard-header h1 {
+    font-size: 22px;
+  }
+}
+
 .dashboard-header p {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
@@ -68,6 +96,14 @@ body {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .header-right {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
 }
 
 .btn-back {
@@ -80,6 +116,13 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .btn-back {
+    width: 100%;
+    padding: 12px 20px;
+  }
 }
 
 .btn-back:hover {
@@ -126,6 +169,13 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
   margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .sensor-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
 }
 
 .sensor-card {
@@ -286,6 +336,74 @@ body {
 @keyframes alertPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .header-left {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .connection-status {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sensor-card {
+    padding: 20px;
+  }
+
+  .card-header h3 {
+    font-size: 16px;
+  }
+
+  .card-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .alert-panel {
+    padding: 15px;
+  }
+
+  .alert-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .system-info {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .info-item {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header h1 {
+    font-size: 18px;
+  }
+
+  .dashboard-header p {
+    font-size: 12px;
+  }
+
+  .value {
+    font-size: 32px;
+  }
+
+  .unit {
+    font-size: 16px;
+  }
+
+  .card-header h3 {
+    font-size: 14px;
+  }
 }
 
 /* System Info */
