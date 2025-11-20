@@ -75,6 +75,22 @@ function generateRandomData() {
 let sensorHistory = [];
 const MAX_HISTORY = 100;
 
+// Auto-generate random data every 2 seconds
+setInterval(() => {
+  latestSensorData = generateRandomData();
+  
+  // Add to history
+  sensorHistory.push({...latestSensorData});
+  if (sensorHistory.length > MAX_HISTORY) {
+    sensorHistory.shift();
+  }
+  
+  // Broadcast to all connected clients
+  io.emit('sensorData', latestSensorData);
+  
+  console.log('📊 Auto-generated:', latestSensorData);
+}, 2000);
+
 // ==================== Socket.IO Events ====================
 io.on('connection', (socket) => {
   console.log('🔌 Client connected:', socket.id);

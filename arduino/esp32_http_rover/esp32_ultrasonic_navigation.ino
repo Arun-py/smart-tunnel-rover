@@ -1,25 +1,14 @@
 /**
- * Smart Tunnel Inspection Rover - Ultrasonic Navigation
+ * Smart Tunnel Inspection Rover - Ultrasonic Navigation Only
  * Civil Engineering Department - 2025
  * 
  * Features:
- * - Ultrasonic-based obstacle avoidance navigation
- * - HTTP POST to production backend (Render)
- * - DHT22, MQ-2 sensors (ultrasonic removed from data)
+ * - Pure ultrasonic-based navigation (NO WiFi, NO data transmission)
  * - L298N motor driver control
+ * - 1 meter forward, then turn right logic
  */
 
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <DHT.h>
-
-// ==================== WiFi Configuration ====================
-const char* WIFI_SSID[] = {"ZORO", "Santhosh SK", "Aadeesh"};
-const char* WIFI_PASSWORD[] = {"zoro1111", "12345678", "12312312"};
-const int WIFI_COUNT = 3;
-
-// ==================== Server Configuration ====================
-const char* SERVER_URL = "https://smart-tunnel-rover.onrender.com/api/sensor-data";
+#include <Arduino.h>
 
 // ==================== Pin Definitions ====================
 // L298N Motor Driver Pins
@@ -32,60 +21,14 @@ const char* SERVER_URL = "https://smart-tunnel-rover.onrender.com/api/sensor-dat
 #define TRIG_PIN 13     // Ultrasonic trigger
 #define ECHO_PIN 32     // Ultrasonic echo
 
-// DHT22 Temperature/Humidity Sensor
-#define DHT_PIN 33      // DHT22 data pin
-#define DHT_TYPE DHT22
-
-// MQ-2 Gas Sensor
-#define MQ2_PIN 34      // Analog input (ADC)
-
 // ==================== Navigation Constants ====================
 #define OBSTACLE_DISTANCE 30   // Stop and turn if obstacle within 30cm
-#define SAFE_DISTANCE 50       // Slow down if within 50cm
-#define UPDATE_INTERVAL 2000   // Send data every 2 seconds
-
-// ==================== Objects ====================
-DHT dht(DHT_PIN, DHT_TYPE);
+#define FORWARD_TIME 5000      // Move forward for 5 seconds (~1 meter)
+#define TURN_TIME 800          // Turn right for 800ms
 
 // ==================== Global Variables ====================
-unsigned long lastUpdate = 0;
-String deviceId = "rover_001";
-
-// ==================== WiFi Connection ====================
-void connectWiFi() {
-  Serial.println("\n📡 Connecting to WiFi...");
-  
-  for (int i = 0; i < WIFI_COUNT; i++) {
-    Serial.print("Trying: ");
-    Serial.println(WIFI_SSID[i]);
-    
-    WiFi.begin(WIFI_SSID[i], WIFI_PASSWORD[i]);
-    
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-      delay(500);
-      Serial.print(".");
-      attempts++;
-    }
-    
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("\n✅ WiFi connected!");
-      Serial.print("📶 Network: ");
-      Serial.println(WIFI_SSID[i]);
-      Serial.print("📍 IP Address: ");
-      Serial.println(WiFi.localIP());
-      Serial.print("💪 Signal: ");
-      Serial.print(WiFi.RSSI());
-      Serial.println(" dBm");
-      return;
-    }
-    
-    Serial.println("\n❌ Failed, trying next...");
-    WiFi.disconnect();
-  }
-  
-  Serial.println("\n⚠️  All networks failed! Continuing offline...");
-}
+unsigned long forwardStartTime = 0;
+bool isMovingForward = false;
 
 // ==================== Motor Control ====================
 void setupMotors() {
@@ -147,138 +90,88 @@ float getDistance() {
   return (distance > 400.0) ? 400.0 : distance;
 }
 
-float readTemperature() {
-  float temp = dht.readTemperature();
-  return isnan(temp) ? 0.0 : temp;
-}
-
-float readHumidity() {
-  float hum = dht.readHumidity();
-  return isnan(hum) ? 0.0 : hum;
-}
-
-int readGasLevel() {
-  int rawValue = analogRead(MQ2_PIN);
-  return map(rawValue, 0, 4095, 0, 1000);
-}
-
-// ==================== HTTP Data Transmission ====================
-void sendDataToServer() {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("⚠️  No WiFi - skipping upload");
-    return;
-  }
-  
-  // Read sensors
-  float temperature = readTemperature();
-  float humidity = readHumidity();
-  int gasLevel = readGasLevel();
-  
-  // Print readings
-  Serial.println("\n📊 Sensor Data:");
-  Serial.printf("🌡️  Temperature: %.1f°C\n", temperature);
-  Serial.printf("💧 Humidity: %.1f%%\n", humidity);
-  Serial.printf("💨 Gas Level: %d ppm\n", gasLevel);
-  
-  // Create JSON payload (no distance included)
-  String jsonData = "{";
-  jsonData += "\"temperature\":" + String(temperature, 1) + ",";
-  jsonData += "\"humidity\":" + String(humidity, 1) + ",";
-  jsonData += "\"gasLevel\":" + String(gasLevel) + ",";
-  jsonData += "\"deviceId\":\"" + deviceId + "\",";
-  jsonData += "\"timestamp\":" + String(millis() / 1000);
-  jsonData += "}";
-  
-  // Send HTTP POST
-  HTTPClient http;
-  http.begin(SERVER_URL);
-  http.addHeader("Content-Type", "application/json");
-  
-  int httpCode = http.POST(jsonData);
-  
-  if (httpCode > 0) {
-    if (httpCode == 200) {
-      Serial.println("✅ Data sent to server");
-    } else {
-      Serial.printf("⚠️  Server response: %d\n", httpCode);
-    }
-  } else {
-    Serial.printf("❌ HTTP error: %s\n", http.errorToString(httpCode).c_str());
-  }
-  
-  http.end();
-}
-
 // ==================== Setup ====================
 void setup() {
   Serial.begin(115200);
   delay(1000);
   
   Serial.println("\n╔════════════════════════════════════════╗");
-  Serial.println("║   Smart Tunnel Inspection Rover v4.0  ║");
+  Serial.println("║   Smart Tunnel Inspection Rover v5.0  ║");
   Serial.println("║   Civil Engineering Department - 2025  ║");
-  Serial.println("║   Ultrasonic Navigation Mode           ║");
+  Serial.println("║   OFFLINE Navigation Mode (No WiFi)    ║");
   Serial.println("╚════════════════════════════════════════╝\n");
 
   // Initialize hardware
   Serial.println("🔧 Initializing hardware...");
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
-  dht.begin();
-  Serial.println("✅ Sensors initialized");
+  Serial.println("✅ Ultrasonic sensor initialized");
   
   setupMotors();
-  connectWiFi();
   
   Serial.println("\n╔════════════════════════════════════════╗");
   Serial.println("║        🚀 ROVER READY - AUTO MODE      ║");
   Serial.println("╚════════════════════════════════════════╝\n");
   Serial.println("Navigation Logic:");
-  Serial.println("  🚧 Distance < 30cm → TURN RIGHT");
-  Serial.println("  ⚡ Distance 30-50cm → CAUTIOUS FORWARD");
-  Serial.println("  ✅ Distance > 50cm → FULL FORWARD\n");
+  Serial.println("  ➡️  Move forward ~1 meter (5 seconds)");
+  Serial.println("  🚧 If obstacle < 30cm → TURN RIGHT");
+  Serial.println("  ↩️  After 1m forward → TURN RIGHT");
+  Serial.println("  🔁 REPEAT\n");
   
   delay(2000);
+  
+  // Start first forward movement
+  isMovingForward = true;
+  forwardStartTime = millis();
+  moveForward();
+  Serial.println("🚗 Starting forward movement...");
 }
 
 // ==================== Main Loop ====================
 void loop() {
   unsigned long currentMillis = millis();
   
-  // Send sensor data every 2 seconds
-  if (currentMillis - lastUpdate >= UPDATE_INTERVAL) {
-    sendDataToServer();
-    lastUpdate = currentMillis;
-  }
-  
-  // Read ultrasonic distance for navigation
+  // Check for obstacles
   float distance = getDistance();
   
-  Serial.printf("📏 Distance: %.1f cm → ", distance);
-  
-  // Motor control based on ultrasonic detection
-  if (distance < OBSTACLE_DISTANCE) {
-    // OBSTACLE DETECTED - Turn right
-    Serial.println("🚧 OBSTACLE! Turning right...");
-    stopMotors();
-    delay(300);
-    turnRight();
-    delay(800);  // Turn 800ms
-    stopMotors();
-    delay(200);
-  } 
-  else if (distance < SAFE_DISTANCE) {
-    // APPROACHING OBSTACLE - Slow forward with pauses
-    Serial.println("⚡ Approaching - Cautious mode");
-    moveForward();
-    delay(500);
-    stopMotors();
-    delay(500);
-  } 
-  else {
-    // CLEAR PATH - Full forward
-    Serial.println("✅ Clear path - Full forward");
-    moveForward();
+  if (isMovingForward) {
+    // Check if obstacle detected
+    if (distance < OBSTACLE_DISTANCE) {
+      Serial.printf("🚧 OBSTACLE at %.1f cm! Turning right...\n", distance);
+      stopMotors();
+      delay(300);
+      turnRight();
+      delay(TURN_TIME);
+      stopMotors();
+      delay(500);
+      
+      // Start new forward cycle
+      isMovingForward = true;
+      forwardStartTime = millis();
+      moveForward();
+      Serial.println("🚗 Continuing forward...");
+    }
+    // Check if 1 meter (~5 seconds) reached
+    else if (currentMillis - forwardStartTime >= FORWARD_TIME) {
+      Serial.println("✅ 1 meter completed! Turning right...");
+      stopMotors();
+      delay(300);
+      turnRight();
+      delay(TURN_TIME);
+      stopMotors();
+      delay(500);
+      
+      // Start new forward cycle
+      isMovingForward = true;
+      forwardStartTime = millis();
+      moveForward();
+      Serial.println("🚗 New cycle - moving forward...");
+    }
+    else {
+      // Continue forward, print distance
+      Serial.printf("📏 Distance: %.1f cm | ⏱️  Time: %lu ms\r", 
+                    distance, currentMillis - forwardStartTime);
+    }
   }
   
   delay(100);  // Stability delay
