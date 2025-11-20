@@ -188,25 +188,6 @@ function Dashboard({ onNavigateToLanding }) {
               </span>
             </div>
           </div>
-
-          {/* Distance Card */}
-          <div className={`sensor-card distance-card status-${getDistanceStatus(sensorData.distance)}`}>
-            <div className="card-header">
-              <Ruler className="card-icon" />
-              <h3>Obstacle Distance</h3>
-            </div>
-            <div className="card-value">
-              <span className="value">{typeof sensorData.distance === 'number' ? sensorData.distance.toFixed(1) : '--'}</span>
-              <span className="unit">cm</span>
-            </div>
-            <div className="card-footer">
-              <div className="status-indicator"></div>
-              <span className="status-text">
-                {getDistanceStatus(sensorData.distance) === 'clear' ? 'Clear Path' : 
-                 getDistanceStatus(sensorData.distance) === 'warning' ? 'Obstacle Nearby' : '⚠️ Obstacle Detected!'}
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Live Sensor Charts */}
@@ -234,8 +215,20 @@ function Dashboard({ onNavigateToLanding }) {
                 <span>WARNING: High temperature ({sensorData.temperature.toFixed(1)}°C)</span>
               </div>
             )}
-            {getGasStatus(sensorData.gasLevel) === 'safe' && 
-             getDistanceStatus(sensorData.distance) === 'clear' && 
+            {getGasStatus(sensorData.gasLevel) === 'danger' && (
+              <div className="alert danger">
+                <AlertTriangle size={16} />
+                <span>⚠️ DANGER: High gas levels detected!</span>
+              </div>
+            )}
+            {getGasStatus(sensorData.gasLevel) === 'warning' && (
+              <div className="alert warning">
+                <AlertTriangle size={16} />
+                <span>Warning: Elevated gas levels</span>
+              </div>
+            )}
+            {getGasStatus(sensorData.gasLevel) === 'safe' &&
+             getHumidityStatus(sensorData.humidity) === 'normal' &&
              getTempStatus(sensorData.temperature) === 'normal' && (
               <div className="alert safe">
                 <CheckCircle size={16} />
@@ -251,7 +244,7 @@ function Dashboard({ onNavigateToLanding }) {
             <strong>Device ID:</strong> {sensorData.deviceId}
           </div>
           <div className="info-item">
-            <strong>Firebase:</strong> Connected
+            <strong>Mode:</strong> Ultrasonic Navigation
           </div>
           <div className="info-item">
             <strong>Update Rate:</strong> Real-time

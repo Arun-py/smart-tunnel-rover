@@ -44,10 +44,33 @@ let latestSensorData = {
   temperature: 0,
   humidity: 0,
   gasLevel: 0,
-  distance: 0,
   timestamp: Date.now(),
   deviceId: 'rover_001'
 };
+
+// Random data generator ranges
+const TEMP_RANGE = { min: 30.2, max: 30.8 };
+const HUMIDITY_RANGE = { min: 62, max: 67 };
+const GAS_RANGES = [104, 120, 155, 250]; // Randomly pick from these values
+
+function getRandomInRange(min, max, decimals = 1) {
+  const value = Math.random() * (max - min) + min;
+  return parseFloat(value.toFixed(decimals));
+}
+
+function getRandomGasLevel() {
+  return GAS_RANGES[Math.floor(Math.random() * GAS_RANGES.length)];
+}
+
+function generateRandomData() {
+  return {
+    temperature: getRandomInRange(TEMP_RANGE.min, TEMP_RANGE.max, 1),
+    humidity: getRandomInRange(HUMIDITY_RANGE.min, HUMIDITY_RANGE.max, 1),
+    gasLevel: getRandomGasLevel(),
+    timestamp: Date.now(),
+    deviceId: 'rover_001'
+  };
+}
 
 let sensorHistory = [];
 const MAX_HISTORY = 100;
@@ -100,13 +123,12 @@ app.get('/api/health', (req, res) => {
 // POST endpoint for ESP32 to send sensor data
 app.post('/api/sensor-data', (req, res) => {
   try {
-    const { temperature, humidity, gasLevel, distance, deviceId } = req.body;
+    const { temperature, humidity, gasLevel, deviceId } = req.body;
     
     latestSensorData = {
       temperature: parseFloat(temperature) || 0,
       humidity: parseFloat(humidity) || 0,
       gasLevel: parseInt(gasLevel) || 0,
-      distance: parseFloat(distance) || 0,
       timestamp: Date.now(),
       deviceId: deviceId || 'rover_001'
     };
@@ -242,6 +264,36 @@ app.get('/api/health', (req, res) => {
     status: 'healthy',
     mode: 'HTTP Direct',
     timestamp: Date.now()
+  });
+});
+
+// Populate random data endpoint (for testing)
+app.get('/api/populate-random', (req, res) => {
+  const count = parseInt(req.query.count) || 20;
+  const newData = [];
+  
+  for (let i = 0; i < count; i++) {
+    const data = generateRandomData();
+    sensorHistory.push(data);
+    newData.push(data);
+  }
+  
+  // Keep only MAX_HISTORY records
+  if (sensorHistory.length > MAX_HISTORY) {
+    sensorHistory = sensorHistory.slice(-MAX_HISTORY);
+  }
+  
+  // Update latest data
+  if (sensorHistory.length > 0) {
+    latestSensorData = {...sensorHistory[sensorHistory.length - 1]};
+    io.emit('sensorData', latestSensorData);
+  }
+  
+  res.json({
+    success: true,
+    message: `Generated ${count} random readings`,
+    data: newData,
+    totalHistory: sensorHistory.length
   });
 });
 
