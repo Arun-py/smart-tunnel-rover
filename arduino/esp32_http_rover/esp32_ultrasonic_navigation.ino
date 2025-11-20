@@ -135,8 +135,8 @@ void loop() {
   float distance = getDistance();
   
   if (isMovingForward) {
-    // Check if obstacle detected
-    if (distance < OBSTACLE_DISTANCE) {
+    // Check if obstacle detected (ignore 0.0 readings - sensor error)
+    if (distance > 0 && distance < OBSTACLE_DISTANCE) {
       Serial.printf("🚧 OBSTACLE at %.1f cm! Turning right...\n", distance);
       stopMotors();
       delay(300);
@@ -168,9 +168,11 @@ void loop() {
       Serial.println("🚗 New cycle - moving forward...");
     }
     else {
-      // Continue forward, print distance
-      Serial.printf("📏 Distance: %.1f cm | ⏱️  Time: %lu ms\r", 
-                    distance, currentMillis - forwardStartTime);
+      // Continue forward, print distance (only if valid reading)
+      if (distance > 0 && distance < 400) {
+        Serial.printf("📏 Distance: %.1f cm | ⏱️  Time: %lu ms\r", 
+                      distance, currentMillis - forwardStartTime);
+      }
     }
   }
   
